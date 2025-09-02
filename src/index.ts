@@ -2,23 +2,23 @@
  * Build styles
  */
 import './index.css';
-import {IconUnderline} from '@codexteam/icons'
+import {IconChevronLeft, IconChevronRight, 	IconText, IconBracketsVertical} from '@codexteam/icons'
 import {type API, type InlineTool, type SanitizerConfig} from "@editorjs/editorjs";
 import {type InlineToolConstructorOptions} from "@editorjs/editorjs/types/tools/inline-tool";
 
 /**
- * Underline Tool for the Editor.js
+ * FontSize Tool for the Editor.js
  *
  * Allows to wrap inline fragment and style it somehow.
  */
-export default class Underline implements InlineTool {
+export default class FontSize implements InlineTool {
   /**
    * Class name for term-tag
    *
    * @type {string}
    */
   static get CSS(): string {
-    return 'cdx-underline';
+    return 'cdx-font-size';
   };
 
   /**
@@ -29,11 +29,25 @@ export default class Underline implements InlineTool {
   private button: HTMLButtonElement | undefined
 
   /**
+   * size picker wrapper
+   *
+   * @type {HTMLDivElement}
+   */
+  private sizePickerWrapper: HTMLDivElement | undefined
+
+  /**
+   * size picker input
+   *
+   * @type {HTMLInputElement}
+   */
+  private sizePicker: HTMLInputElement | undefined
+
+  /**
    * Tag represented the term
    *
    * @type {string}
    */
-  private tag: string = 'U';
+  private tag: string = 'SPAN';
 
   /**
    * API InlineToolConstructorOptions
@@ -41,6 +55,13 @@ export default class Underline implements InlineTool {
    * @type {API}
    */
   private api: API
+
+  /**
+   * State
+   *
+   * @type {boolean}
+   */
+  private state: boolean | undefined
 
   /**
    * CSS classes
@@ -86,6 +107,96 @@ export default class Underline implements InlineTool {
   }
 
   /**
+   * Create input element for Toolbar
+   *
+   * @returns {HTMLElement}
+   */
+  public renderActions(): HTMLElement {
+    if (!this.sizePickerWrapper) {
+      this.sizePickerWrapper = document.createElement('div');
+      this.sizePickerWrapper.id = 'editorjs-font-size-picker-wrapper';
+
+      this.sizePickerWrapper.appendChild(this.datalist());
+      this.sizePickerWrapper.appendChild(this.decrementButton());
+      this.sizePickerWrapper.appendChild(this.sizePickerInput());
+      this.sizePickerWrapper.appendChild(this.incrementButton());
+    }
+
+    return this.sizePickerWrapper;
+  }
+
+  /**
+   * datalist element
+   *
+   * @returns {HTMLDataListElement}
+   */
+  public datalist(): HTMLDataListElement {
+    const datalist = document.createElement('datalist');
+    datalist.id = 'font-size-list';
+
+    ['8', '9', '10', '11', '12', '14', '16', '18', '24', '30', '36', '48', '60', '72', '96'].forEach(size => {
+      const option = document.createElement('option');
+      option.value = size;
+      datalist.appendChild(option);
+    })
+
+    return datalist;
+  }
+
+  /**
+   * size picker input
+   *
+   * @returns {HTMLInputElement}
+   */
+  public sizePickerInput(): HTMLInputElement {
+    this.sizePicker = document.createElement('input');
+    this.sizePicker.id = 'editorjs-font-size-picker';
+    this.sizePicker.type = 'number';
+    this.sizePicker.step = '1';
+    this.sizePicker.setAttribute('list', 'font-size-list');
+
+    return this.sizePicker;
+  }
+
+  /**
+   * decrement button
+   *
+   * @returns {HTMLButtonElement}
+   */
+  public decrementButton(): HTMLButtonElement {
+    const decrementButton = document.createElement('button');
+    decrementButton.type = 'button';
+    decrementButton.classList.add('cdx-settings-button');
+    decrementButton.innerHTML = this.decrementButtonIcon;
+
+    decrementButton.onclick = () => {
+      this.sizePicker!.stepDown();
+      this.sizePicker!.dispatchEvent(new Event('input'));
+    }
+
+    return decrementButton;
+  }
+
+  /**
+   * increment button
+   *
+   * @returns {HTMLButtonElement}
+   */
+  public incrementButton(): HTMLButtonElement {
+    const incrementButton = document.createElement('button');
+    incrementButton.type = 'button';
+    incrementButton.classList.add('cdx-settings-button');
+    incrementButton.innerHTML = this.incrementButtonIcon;
+
+    incrementButton.onclick = () => {
+      this.sizePicker!.stepUp();
+      this.sizePicker!.dispatchEvent(new Event('input'));
+    }
+
+    return incrementButton;
+  }
+
+  /**
    * Wrap/Unwrap selected fragment
    *
    * @param {Range} range - selected fragment
@@ -95,7 +206,7 @@ export default class Underline implements InlineTool {
       return;
     }
 
-    const termWrapper = this.api.selection.findParentTag(this.tag, Underline.CSS);
+    const termWrapper = this.api.selection.findParentTag(this.tag, FontSize.CSS);
 
     /**
      * If start or end of selection is in the highlighted block
@@ -116,9 +227,9 @@ export default class Underline implements InlineTool {
     /**
      * Create a wrapper for highlighting
      */
-    const u = document.createElement(this.tag);
+    const span = document.createElement(this.tag);
 
-    u.classList.add(Underline.CSS);
+    span.classList.add(FontSize.CSS);
 
     /**
      * SurroundContent throws an error if the Range splits a non-Text node with only one of its boundary points
@@ -127,13 +238,13 @@ export default class Underline implements InlineTool {
      *
      * // range.surroundContents(span);
      */
-    u.appendChild(range.extractContents());
-    range.insertNode(u);
+    span.appendChild(range.extractContents());
+    range.insertNode(span);
 
     /**
      * Expand (add) selection to highlighted block
      */
-    this.api.selection.expandToTag(u);
+    this.api.selection.expandToTag(span);
   }
 
   /**
@@ -179,14 +290,51 @@ export default class Underline implements InlineTool {
   }
 
   /**
+   * Shows input element
+   *
+   * @returns {void}
+   */
+  public showActions(span: HTMLElement | null): void {
+    if (this.sizePicker && span) {
+      this.sizePicker.oninput = () => {
+        span.style.fontSize = this.sizePicker?.value + 'px';
+      }
+
+      this.sizePicker.setAttribute('value', span.style.fontSize.replace('px', '') || '16');
+      this.sizePicker.focus();
+    }
+  }
+
+  /**
+   * Hides input element
+   *
+   * @returns {void}
+   */
+  public hideActions(): void {
+    if (this.sizePicker) {
+      this.sizePicker.onchange = null;
+    }
+  }
+
+  /**
    * Check and change Term's state for current selection
    */
-  public checkState(): boolean {
-    const termTag = this.api.selection.findParentTag(this.tag, Underline.CSS);
+  public checkState(selection: Selection): boolean {
+    const termTag = this.api.selection.findParentTag(this.tag, FontSize.CSS);
 
-    this.button?.classList.toggle(this.iconClasses.active, !!termTag);
+    this.state = !!termTag;
 
-    return !!termTag
+    if (this.state) {
+      this.showActions(termTag);
+    } else {
+      this.hideActions();
+    }
+
+    if (this.button) {
+      this.button.classList.toggle(this.iconClasses.active, this.state);
+    }
+
+    return this.state;
   }
 
   /**
@@ -195,18 +343,36 @@ export default class Underline implements InlineTool {
    * @returns {string}
    */
   public get toolboxIcon(): string {
-    return IconUnderline;
+    return	IconText + IconBracketsVertical;
+  }
+
+  /**
+   * Get decrement button icon's SVG
+   *
+   * @returns {string}
+   */
+  public get decrementButtonIcon(): string {
+    return IconChevronLeft;
+  }
+
+  /**
+   * Get increment button icon's SVG
+   *
+   * @returns {string}
+   */
+  public get incrementButtonIcon(): string {
+    return IconChevronRight;
   }
 
   /**
    * Sanitizer rule
    *
-   * @returns {{u: {class: string}}}
+   * @returns {{span: {class: string}}}
    */
   public static get sanitize(): SanitizerConfig {
     return {
-      u: {
-        class: Underline.CSS,
+      span: {
+        class: FontSize.CSS,
       },
     };
   }

@@ -11,8 +11,8 @@ export default {
         copyPublicDir: false,
         lib: {
             entry: path.resolve(__dirname, "src", "index.ts"),
-            name: "Underline",
-            fileName: "underline",
+            name: "FontSize",
+            fileName: "fontsize",
         },
     },
     define: {
@@ -24,7 +24,7 @@ export default {
         cssInjectedByJsPlugin(),
         dts({
             //insertTypesEntry: true,
-            tsconfigPath: './tsconfig.json'
+            tsconfigPath: "./tsconfig.json"
         }),
     ],
 };

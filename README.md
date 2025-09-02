@@ -1,28 +1,28 @@
 ![](https://badgen.net/badge/Editor.js/v2.0/blue)
 
-# Underline Tool
-Inline tool for underlining text fragments for the [Editor.js](https://github.com/codex-team/editor.js)
+# Font Size Tool
+Inline tool for changing the font size of text fragments in [Editor.js](https://github.com/codex-team/editor.js)
 
-![](editorjs-underline.gif)
+![](editorjs-fontsize.gif)
 
 ## Installation
 
-### Install via NPM
+### Install via NPM or Yarn
 
 Get the package
 
 ```shell
-npm i --save @editorjs/underline
+npm install @fillipeppalhares/editorjs-font-size
 ```
 
 ```shell
-yarn add @editorjs/underline
+yarn add @fillipeppalhares/editorjs-font-size
 ```
 
 Include module at your application
 
 ```javascript
-import Underline from '@editorjs/underline';
+import FontSize from '@fillipeppalhares/editorjs-font-size';
 ```
 
 ### Download to your project's source dir
@@ -30,27 +30,19 @@ import Underline from '@editorjs/underline';
 1. Upload folder `dist` from repository
 2. Add `dist/bundle.js` file to your page.
 
-### Load from CDN
-
-You can load the package from [jsDelivr CDN](https://www.jsdelivr.com/package/npm/@editorjs/underline) and require the script on a page with Editor.js.
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/underline@latest"></script>
-```
-
 ## Usage
 
 Add a new Tool to the `tools` property of the Editor.js initial config.
 
 ```javascript
 import EditorJs from '@editorjs/editorjs';
-import Underline from '@editorjs/underline';
+import FontSize from '@fillipeppalhares/editorjs-font-size';
 
 var editor = new EditorJS({
   // ...
   tools: {
     // ...
-    underline: Underline
+    fontSize: FontSize
   },
 });
 ```
@@ -61,13 +53,13 @@ This Tool has no config params
 
 ## Output data
 
-Underlined text will be wrapped with a `u` tag with an `cdx-underline` class.
+Selected text will be wrapped with a `span` tag with an `cdx-font-size` class and an inline `font-size` style set to the chosen value.
 
 ```json
 {
     "type" : "text",
     "data" : {
-        "text" : "Create a directory for your module, enter it and run <u class=\"cdx-underline\">npm init</u> command."
+        "text" : "Create a directory for your module, enter it and run <span class=\"cdx-font-size\" style=\"font-size: 24px;\">npm init</span> command."
     }
 }
 ```

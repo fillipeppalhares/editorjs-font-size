@@ -1,23 +1,23 @@
 {
-  "name": "@editorjs/underline",
-  "version": "1.2.1",
+  "name": "@fillipeppalhares/editorjs-font-size",
+  "version": "1.0.0",
   "keywords": [
-    "underline",
+    "font-size",
     "tool",
     "plugin",
     "editor.js",
     "editorjs"
   ],
-  "description": "Inline tool for underlining text fragments",
+  "description": "Inline tool for font size",
   "license": "MIT",
-  "repository": "https://github.com/editor-js/underline",
-  "main": "./dist/underline.umd.js",
-  "module": "./dist/underline.mjs",
+  "repository": "https://github.com/fillipeppalhares/editorjs-font-size",
+  "main": "./dist/fontsize.umd.js",
+  "module": "./dist/fontsize.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/underline.mjs",
-      "require": "./dist/underline.umd.js",
+      "import": "./dist/fontsize.mjs",
+      "require": "./dist/fontsize.umd.js",
       "types": "./dist/index.d.ts"
     }
   },
@@ -26,13 +26,13 @@
     "build": "vite build"
   },
   "author": {
-    "name": "fajardm",
-    "email": "fajar.dwi.mawan@gmail.com"
+    "name": "Fillipe P. Palhares",
+    "email": "fillipe.bugman.palhares@gmail.com"
   },
   "bugs": {
-    "url": "https://github.com/editor-js/underline/issues"
+    "url": "https://github.com/fillipeppalhares/editorjs-font-size/issues"
   },
-  "homepage": "https://github.com/editor-js/underline#readme",
+  "homepage": "https://github.com/fillipeppalhares/editorjs-font-size#readme",
   "devDependencies": {
     "typescript": "^5.5.4",
     "vite": "^5.3.5",

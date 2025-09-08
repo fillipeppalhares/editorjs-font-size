@@ -57,6 +57,13 @@ export default class FontSize implements InlineTool {
   private api: API
 
   /**
+   * API InlineToolConstructorOptions
+   *
+   * @type {API}
+   */
+  // private config: API
+
+  /**
    * State
    *
    * @type {boolean}
@@ -75,6 +82,7 @@ export default class FontSize implements InlineTool {
    */
   public constructor(options: InlineToolConstructorOptions) {
     this.api = options.api;
+    // this.config = options.config || {};
 
     /**
      * CSS classes
@@ -202,6 +210,7 @@ export default class FontSize implements InlineTool {
    * @param {Range} range - selected fragment
    */
   public surround(range: Range): void {
+    console.log('surround', range);
     if (!range) {
       return;
     }
@@ -238,13 +247,39 @@ export default class FontSize implements InlineTool {
      *
      * // range.surroundContents(span);
      */
-    span.appendChild(range.extractContents());
+
+    const content = range.extractContents();
+
+    this.cleanupSelection(content);
+
+    span.appendChild(content);
     range.insertNode(span);
 
-    /**
-     * Expand (add) selection to highlighted block
-     */
     this.api.selection.expandToTag(span);
+  }
+
+  /**
+   * remove term-tags within selected fragment
+   *
+   * @param {Node} node
+   */
+  private cleanupSelection(node: Node) {
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, null);
+
+    let current: Node | null = walker.currentNode;
+    while (current) {
+      const el = current as HTMLElement;
+
+      if (el.nodeType === Node.ELEMENT_NODE && el.classList.contains(FontSize.CSS)) {
+        const parent = el.parentNode;
+        while (el.firstChild) {
+          parent?.insertBefore(el.firstChild, el);
+        }
+        parent?.removeChild(el);
+      }
+
+      current = walker.nextNode();
+    }
   }
 
   /**
@@ -372,7 +407,7 @@ export default class FontSize implements InlineTool {
   public static get sanitize(): SanitizerConfig {
     return {
       span: {
-        class: FontSize.CSS,
+        class: FontSize.CSS
       },
     };
   }

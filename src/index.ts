@@ -57,13 +57,6 @@ export default class FontSize implements InlineTool {
   private api: API
 
   /**
-   * API InlineToolConstructorOptions
-   *
-   * @type {API}
-   */
-  // private config: API
-
-  /**
    * State
    *
    * @type {boolean}
@@ -82,7 +75,6 @@ export default class FontSize implements InlineTool {
    */
   public constructor(options: InlineToolConstructorOptions) {
     this.api = options.api;
-    // this.config = options.config || {};
 
     /**
      * CSS classes
@@ -210,17 +202,14 @@ export default class FontSize implements InlineTool {
    * @param {Range} range - selected fragment
    */
   public surround(range: Range): void {
-    console.log('surround', range);
     if (!range) {
       return;
     }
 
     const termWrapper = this.api.selection.findParentTag(this.tag, FontSize.CSS);
+    const isActive = termWrapper ? this.isSelectionExactlyNode(range, termWrapper) : false;
 
-    /**
-     * If start or end of selection is in the highlighted block
-     */
-    if (termWrapper) {
+    if (termWrapper && isActive) {
       this.unwrap(termWrapper);
     } else {
       this.wrap(range);
@@ -256,30 +245,6 @@ export default class FontSize implements InlineTool {
     range.insertNode(span);
 
     this.api.selection.expandToTag(span);
-  }
-
-  /**
-   * remove term-tags within selected fragment
-   *
-   * @param {Node} node
-   */
-  private cleanupSelection(node: Node) {
-    const walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, null);
-
-    let current: Node | null = walker.currentNode;
-    while (current) {
-      const el = current as HTMLElement;
-
-      if (el.nodeType === Node.ELEMENT_NODE && el.classList.contains(FontSize.CSS)) {
-        const parent = el.parentNode;
-        while (el.firstChild) {
-          parent?.insertBefore(el.firstChild, el);
-        }
-        parent?.removeChild(el);
-      }
-
-      current = walker.nextNode();
-    }
   }
 
   /**
@@ -336,7 +301,6 @@ export default class FontSize implements InlineTool {
       }
 
       this.sizePicker.setAttribute('value', span.style.fontSize.replace('px', '') || '16');
-      this.sizePicker.focus();
     }
   }
 
@@ -347,7 +311,7 @@ export default class FontSize implements InlineTool {
    */
   public hideActions(): void {
     if (this.sizePicker) {
-      this.sizePicker.onchange = null;
+      this.sizePicker.oninput = null;
     }
   }
 
@@ -356,11 +320,17 @@ export default class FontSize implements InlineTool {
    */
   public checkState(selection: Selection): boolean {
     const termTag = this.api.selection.findParentTag(this.tag, FontSize.CSS);
+    let isActive = false;
 
-    this.state = !!termTag;
+    if (termTag && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      isActive = this.isSelectionExactlyNode(range, termTag);
+    }
+
+    this.state = isActive;
 
     if (this.state) {
-      this.showActions(termTag);
+      this.showActions(termTag!);
     } else {
       this.hideActions();
     }
@@ -370,6 +340,46 @@ export default class FontSize implements InlineTool {
     }
 
     return this.state;
+  }
+
+  /**
+   * remove term-tags within selected fragment
+   *
+   * @param {Node} node
+   */
+  private cleanupSelection(node: Node) {
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_ELEMENT, null);
+
+    let current: Node | null = walker.currentNode;
+    while (current) {
+      const el = current as HTMLElement;
+
+      if (el.nodeType === Node.ELEMENT_NODE && el.classList.contains(FontSize.CSS)) {
+        const parent = el.parentNode;
+        while (el.firstChild) {
+          parent?.insertBefore(el.firstChild, el);
+        }
+        parent?.removeChild(el);
+      }
+
+      current = walker.nextNode();
+    }
+  }
+
+  /**
+   * Check if selection exactly covers the node
+   *
+   * @param range - The selection range
+   * @param node - The DOM node to compare against
+   */
+  private isSelectionExactlyNode(range: Range, node: Node): boolean {
+    const nodeRange = document.createRange();
+    nodeRange.selectNodeContents(node);
+
+    return (
+      range.compareBoundaryPoints(Range.START_TO_START, nodeRange) === 0 &&
+      range.compareBoundaryPoints(Range.END_TO_END, nodeRange) === 0
+    );
   }
 
   /**
